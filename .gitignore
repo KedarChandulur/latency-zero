@@ -67,3 +67,15 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+
+
+
+
+# latency-zero: Custom ignore instructions
+# VS Code Editor
+.vscode/
+
+# Build output
+build/
+bin/
