@@ -9,17 +9,33 @@
 #include <netdb.h>
 
 
+// Needed for both TCP and UDP
 
 // int getaddrinfo(const char *node,   // e.g. "www.example.com" or IP
 //                 const char *service,  // e.g. "http" or port number
 //                 const struct addrinfo *hints,
 //                 struct addrinfo **res);
 
-// int socket(int domain, int type, int protocol);
-// int connect(int sockfd, struct sockaddr *serv_addr, int addrlen); 
+// void freeaddrinfo (struct addrinfo *__ai)
 
-// This is for TCP
+// int socket(int domain, int type, int protocol);
+
+
+// Below are the required for UDP
+
+// int sendto(int sockfd, const void *msg, int len, unsigned int flags,
+//            const struct sockaddr *to, socklen_t tolen);
+
+// int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
+//              struct sockaddr *from, int *fromlen);
+
+
+// Below are for TCP
+
+// int connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
+
 // int send(int sockfd, const void *msg, int len, int flags);
+
 // int recv(int sockfd, void *buf, int len, int flags);
 
 
@@ -64,17 +80,17 @@ int main()
     }
 
     const struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // Destination Server address.
-    socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
+    const socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
 
-    const int connectstatus = connect(sockfd, server_addr, server_addr_len);
+    // const int connectstatus = connect(sockfd, server_addr, server_addr_len);
 
-    if(connectstatus < 0)
-    {
-        printf("\nError: connect() failed! error status: %s", strerror(errno));
-        //perror("\nError: connect() failed");
+    // if(connectstatus < 0)
+    // {
+    //     printf("\nError: connect() failed! error status: %s", strerror(errno));
+    //     //perror("\nError: connect() failed");
 
-        exit(EXIT_FAILURE);
-    }
+    //     exit(EXIT_FAILURE);
+    // }
 
     const char* message = "Hello, UDP Server!";
     const int message_len = strlen(message);
@@ -89,9 +105,12 @@ int main()
         printf("\nSuccess: receiver send() succeeded!");
     }
 
+    struct sockaddr* receiver_addr;
+    socklen_t* receiver_addr_len;
+
     char buffer[1024];
 
-    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&server_addr, &server_addr_len);
+    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, receiver_addr, receiver_addr_len);
     
     if (bytes_received < 0)
     {

@@ -9,16 +9,35 @@
 #include <netdb.h>
 
 
+// Needed for both TCP and UDP
+
+// int getaddrinfo(const char *node,   // e.g. "www.example.com" or IP
+//                 const char *service,  // e.g. "http" or port number
+//                 const struct addrinfo *hints,
+//                 struct addrinfo **res);
+
+// void freeaddrinfo (struct addrinfo *__ai)
+
+// int socket(int domain, int type, int protocol);
+
+
+// Below are the required for UDP
 
 // int bind(int sockfd, struct sockaddr *my_addr, int addrlen);
-// int listen(int sockfd, int backlog);
-// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
-// This is for UDP
 // int sendto(int sockfd, const void *msg, int len, unsigned int flags,
 //            const struct sockaddr *to, socklen_t tolen);
+
 // int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
 //              struct sockaddr *from, int *fromlen);
+
+
+// Below are for TCP
+
+// int listen(int sockfd, int backlog);
+
+// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
 
 int main()
 {
@@ -74,31 +93,31 @@ int main()
         return EXIT_FAILURE;
     }
 
-    const int backlog = 1;
-    int listenstatus = listen(sockfd, backlog);
+    // const int backlog = 1;
+    // int listenstatus = listen(sockfd, backlog);
 
-    if (listenstatus < 0)
-    {
-        perror("\nError: listen() failed!");
+    // if (listenstatus < 0)
+    // {
+    //     perror("\nError: listen() failed!");
 
-        return EXIT_FAILURE;
-    }
+    //     return EXIT_FAILURE;
+    // }
 
-    struct sockaddr_storage their_addr;
-    socklen_t their_addr_len = sizeof(their_addr);
+    // struct sockaddr_storage their_addr;
+    // socklen_t their_addr_len = sizeof(their_addr);
 
-    const int newfd = accept(sockfd, (struct sockaddr*)&their_addr, &their_addr_len);
+    // const int newfd = accept(sockfd, (struct sockaddr*)&their_addr, &their_addr_len);
 
-    if(newfd < 0)
-    {
-        perror("\nError: accept() failed!");
+    // if(newfd < 0)
+    // {
+    //     perror("\nError: accept() failed!");
 
-        return EXIT_FAILURE;
-    }
+    //     return EXIT_FAILURE;
+    // }
 
     const char* message = "Hello, UDP Receiver!";
     const int message_len = strlen(message);
-    const int bytes_sent = sendto(newfd, message, message_len, 0, (struct sockaddr*)&their_addr, their_addr_len);
+    const int bytes_sent = sendto(sockfd, message, message_len, 0, server_addr, server_addr_len);
 
     if(bytes_sent != message_len)
     {
@@ -109,8 +128,12 @@ int main()
         printf("\nSuccess: sender send() succeeded!");
     }
 
+    struct sockaddr* receiver_addr;
+    socklen_t* receiver_addr_len;
+    
     char buffer[1024];
-    int bytes_received = recvfrom(newfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&their_addr, &their_addr_len);
+    
+    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, receiver_addr, receiver_addr_len);
     
     if (bytes_received < 0)
     {
@@ -121,7 +144,7 @@ int main()
     buffer[bytes_received] = '\0';
     printf("\nsender Received: %s\n", buffer);
 
-    close(newfd);
+    // close(newfd);
 
     close(sockfd);
 
