@@ -29,5 +29,19 @@ make
 make clean
 ```
 
+## Run:
+- To run the binaries/executables use the below command
+
+```bash
+# Inside the terminal
+./bin/name_of_executable
+
+# Replace name_of_executable with the name of your executable. For example, if you have a binary named `udp_receiver`, you can run it using:
+./bin/udp_receiver
+
+# Same applies to udp_sender
+./bin/udp_sender
+```
+
 #### For Additional Notes:
 Please Refer to [GIT_NOTES.md](https://raw.githubusercontent.com/KedarChandulur/latency-zero/refs/heads/Master/GIT_NOTES.md)
