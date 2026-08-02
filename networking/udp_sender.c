@@ -41,7 +41,7 @@
 
 int main()
 {
-    printf("\nudp_receiver init\n");
+    printf("\nudp_server init\n");
 
     //const char* ipaddr = NULL; // need to change this.
     const char* ipaddr = "127.0.0.1"; // loopback addr.

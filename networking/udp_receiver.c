@@ -41,7 +41,7 @@
 
 int main()
 {
-    printf("udp_sender init\n");
+    printf("udp_client init\n");
 
     //const char* ipaddr = NULL; // need to change this.
     const char* ipaddr = "127.0.0.1"; // loopback addr.
@@ -93,8 +93,12 @@ int main()
         return EXIT_FAILURE;
     }
     
+    // Create a new struct to store the sender's address
+    struct sockaddr_storage received_server_addr;
+    socklen_t received_server_addr_len = sizeof(received_server_addr);
+
     char buffer[1024];
-    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, server_addr, &server_addr_len);
+    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&received_server_addr, &received_server_addr_len);    
     
     if (bytes_received < 0)
     {
