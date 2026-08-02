@@ -2,7 +2,7 @@
 type: short description
 
 ## Common types
-| Type      | When to use                                     |
+| type      | When to use                                     |
 | --------- | ----------------------------------------------- |
 | chore     | Maintenance, config, tooling (like .gitignore)  |
 | feat      | Adding new feature or code                      |
