@@ -12,6 +12,7 @@ Setup:
 ```bash
 chmod +x scripts/bootstrap.sh
 bash scripts/bootstrap.sh
+bash scripts/foldersetup.sh
 ```
 
 #### For Additional Notes:
