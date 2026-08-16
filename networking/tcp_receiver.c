@@ -20,8 +20,6 @@
 
 // int socket(int domain, int type, int protocol);
 
-// int setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
 
 // Below are the required for TCP
 
@@ -75,15 +73,6 @@ int main()
     if(sockfd < 0)
     {
         perror("\nError: socket() creation failed");
-        return EXIT_FAILURE;
-    }
-
-    const int opt = 1;
-    const int sockoptstatus = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-    if(sockoptstatus < 0)
-    {
-        printf("\nError: setsockopt() failed! error status: %s", strerror(errno));
         return EXIT_FAILURE;
     }
 
