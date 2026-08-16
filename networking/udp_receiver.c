@@ -20,10 +20,10 @@
 
 // int socket(int domain, int type, int protocol);
 
+// int setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
 
 // Below are the required for UDP
-
-// int bind(int sockfd, struct sockaddr *my_addr, int addrlen);
 
 // int sendto(int sockfd, const void *msg, int len, unsigned int flags,
 //            const struct sockaddr *to, socklen_t tolen);
@@ -34,16 +34,18 @@
 
 // Below are for TCP
 
-// int listen(int sockfd, int backlog);
+// int connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
 
-// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+// int send(int sockfd, const void *msg, int len, int flags);
+
+// int recv(int sockfd, void *buf, int len, int flags);
 
 
 int main()
 {
-    printf("udp_client init\n");
+    printf("\nudp_client initializing...\n");
 
-    //const char* ipaddr = NULL; // need to change this.
+    //const char* ipaddr = NULL; // need to change this to the IP address of the server.
     const char* ipaddr = "127.0.0.1"; // loopback addr.
     const char* port = "8080";
 
@@ -79,35 +81,30 @@ int main()
         return EXIT_FAILURE;
     }
 
-    struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // This Server address.
-    socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
+    const int opt = 1;
+    const int sockoptstatus = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    const int bindstatus = bind(sockfd, server_addr, server_addr_len);
-
-    // Error with binding
-    if(bindstatus < 0)
+    if(sockoptstatus < 0)
     {
-        printf("\nError: bind() failed! error status: %s", strerror(errno));
-        //perror("\nError: bind() failed");
-
+        printf("\nError: setsockopt() failed! error status: %s", strerror(errno));
         return EXIT_FAILURE;
     }
-    
-    // Create a new struct to store the sender's address
-    struct sockaddr_storage received_server_addr;
-    socklen_t received_server_addr_len = sizeof(received_server_addr);
 
-    char buffer[1024];
-    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&received_server_addr, &received_server_addr_len);    
-    
-    if (bytes_received < 0)
+    const struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // Destination Server address.
+    const socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
+
+    const char* message = "Hello from the UDP Client!";
+    const int message_len = strlen(message);
+    const int bytes_sent = sendto(sockfd, message, message_len, 0, server_addr, server_addr_len);
+
+    if(bytes_sent != message_len)
     {
-        printf("\nError: Failed to receive the data from server! error status: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        printf("\nError: Client failed to send the message! error status: %s\n", strerror(errno));
     }
-
-    buffer[bytes_received] = '\0';
-    printf("\nMessage from server arrived: %s\n", buffer);
+    else
+    {
+        printf("\nSuccess: Message from client sent successfully\n");
+    }
 
     close(sockfd);
 
