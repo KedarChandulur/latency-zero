@@ -4,9 +4,9 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
+#include <string.h>
+#include <sys/socket.h>
 
 
 // Needed for both TCP and UDP
@@ -23,16 +23,7 @@
 // int setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 
-// Below are the required for UDP
-
-// int sendto(int sockfd, const void *msg, int len, unsigned int flags,
-//            const struct sockaddr *to, socklen_t tolen);
-
-// int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
-//              struct sockaddr *from, int *fromlen);
-
-
-// Below are for TCP
+// Below are the required for TCP
 
 // int connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
 
@@ -41,43 +32,49 @@
 // int recv(int sockfd, void *buf, int len, int flags);
 
 
+// Below are for UDP
+
+// int sendto(int sockfd, const void *msg, int len, unsigned int flags,
+//            const struct sockaddr *to, socklen_t tolen);
+
+// int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
+//              struct sockaddr *from, int *fromlen);
+
+
 int main()
 {
-    printf("\nudp_client initializing...\n");
+    printf("\ntcp_client initializing...\n");
 
     //const char* ipaddr = NULL; // need to change this to the IP address of the server.
-    const char* ipaddr = "127.0.0.1"; // loopback addr.
+    const char* ipaddr = "127.0.0.1"; // loopback addr
     const char* port = "8080";
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC; // Either IPv4 or IPv6
     //hints.ai_flags = AI_PASSIVE; // By using the AI_PASSIVE flag, I’m telling the program to bind to the IP of the host i am running on
-    hints.ai_socktype = SOCK_DGRAM; // UDP Datagram socket
+    hints.ai_socktype = SOCK_STREAM; // TCP Stream socket
 
     struct addrinfo* res = NULL;
-
     const int status = getaddrinfo(ipaddr, port, &hints, &res);
-
-    // Error with getaddrinfo.
-    if(status != 0)
+    
+    // Error with getaddrinfo
+    if (status != 0)
     {
         printf("Error: getaddrinfo() failed! status: %s", gai_strerror(status));
         return EXIT_FAILURE;
     }
 
     const int domain = res->ai_family; // Family of socket, IPv4 or IPv6.
-    const int type = res->ai_socktype; // Type of socket, Datagram or Stream.
-    const int protocol = res->ai_protocol; // Protocol used by socket, TCP or UDP
+    const int type = res->ai_socktype; // Type of socket, Datagram or stream.
+    const int protocol = res->ai_protocol; // Protocol used by socket, TCP or UDP.
 
     const int sockfd = socket(domain, type, protocol);
 
     // Error with socket creation
     if(sockfd < 0)
     {
-        //printf("\nError: socket() creation failed! error status: %s", strerror(errno));
         perror("\nError: socket() creation failed");
-
         return EXIT_FAILURE;
     }
 
@@ -90,21 +87,25 @@ int main()
         return EXIT_FAILURE;
     }
 
-    const struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // Destination Server address.
-    const socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
+    const int connectstatus = connect(sockfd, res->ai_addr, res->ai_addrlen); // Listen for incoming connections
 
-    const char* message = "Hello from the UDP Client!";
-    const int message_len = strlen(message);
-    const int bytes_sent = sendto(sockfd, message, message_len, 0, server_addr, server_addr_len);
+    if(connectstatus < 0)
+    {
+        printf("Error: connect() failed! error status: %s", strerror(errno));
+        return EXIT_FAILURE;
+    }
 
-    if(bytes_sent != message_len)
+    char buffer[1024]; // Buffer to store received data
+    const int bytes_received = recv(sockfd, buffer, sizeof(buffer), 0); // Receive data from the server
+
+    if(bytes_received < 0)
     {
-        printf("\nError: Client failed to send the message! error status: %s\n", strerror(errno));
+        printf("\nError: Failed to receive the data from server! error status: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
-    else
-    {
-        printf("\nSuccess: Message from client sent successfully\n");
-    }
+
+    buffer[bytes_received] = '\0';
+    printf("\nMessage from server arrived: %s\n", buffer);
 
     close(sockfd);
 

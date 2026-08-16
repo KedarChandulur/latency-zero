@@ -2,11 +2,10 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 
 // Needed for both TCP and UDP
@@ -25,16 +24,7 @@
 // int bind(int sockfd, struct sockaddr *my_addr, int addrlen);
 
 
-// Below are the required for UDP
-
-// int sendto(int sockfd, const void *msg, int len, unsigned int flags,
-//            const struct sockaddr *to, socklen_t tolen);
-
-// int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
-//              struct sockaddr *from, int *fromlen);
-
-
-// Below are for TCP
+// Below are the required for TCP
 
 // int listen(int sockfd, int backlog);
 
@@ -45,29 +35,38 @@
 // int recv(int sockfd, void *buf, int len, int flags);
 
 
+// Below are for UDP
+
+// int sendto(int sockfd, const void *msg, int len, unsigned int flags,
+//            const struct sockaddr *to, socklen_t tolen);
+
+// int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
+//              struct sockaddr *from, int *fromlen);
+
+
 int main()
 {
-    printf("\nudp_server initializing...\n");
+    printf("\ntcp_server initializing...\n");
 
     //const char* ipaddr = NULL; // need to change this to the IP address of the server.
     const char* ipaddr = "127.0.0.1"; // loopback addr.
     const char* port = "8080";
-    
+
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC; // Either IPv4 or IPv6
     //hints.ai_flags = AI_PASSIVE; // By using the AI_PASSIVE flag, I’m telling the program to bind to the IP of the host i am running on
-    hints.ai_socktype = SOCK_DGRAM; // UDP Datagram socket
-    
+    hints.ai_socktype = SOCK_STREAM; // TCP Stream socket
+
     struct addrinfo* res = NULL;
 
     const int status = getaddrinfo(ipaddr, port, &hints, &res);
-
+    
     // Error with getaddrinfo.
-    if(status != 0)
+    if (status != 0)
     {
-        printf("\nError: getaddrinfo() failed! error status: %s", gai_strerror(status));
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        return EXIT_FAILURE;
     }
 
     const int domain = res->ai_family; // Family of socket, IPv4 or IPv6.
@@ -80,9 +79,7 @@ int main()
     if(sockfd < 0)
     {
         printf("\nError: socket() creation failed! error status: %s", strerror(errno));
-        //perror("\nError: socket() creation failed");
-
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     const int opt = 1;
@@ -94,36 +91,62 @@ int main()
         return EXIT_FAILURE;
     }
 
-    const struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // Destination Server address.
-    const socklen_t server_addr_len = res->ai_addrlen; // Length of server address struct
+    struct sockaddr* server_addr = (struct sockaddr*)res->ai_addr; // This Server address.
+    socklen_t server_addr_len = res->ai_addrlen; // Length of the server address struct
 
     const int bindstatus = bind(sockfd, server_addr, server_addr_len);
 
-    // Error with binding
     if(bindstatus < 0)
     {
-        printf("\nError: bind() failed! error status: %s", strerror(errno));
-        //perror("\nError: bind() failed");
+        printf("Error: bind() failed! error status: %s", strerror(errno));
 
         return EXIT_FAILURE;
     }
 
-    struct sockaddr_storage received_client_addr;
-    socklen_t received_client_addr_len = sizeof(received_client_addr);
-
-    char buffer[1024];
-    const int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&received_client_addr, &received_client_addr_len);    
+    const int backlog = 1; // Maximum number of pending connections.
+    const int listenstatus = listen(sockfd, backlog);
     
-    if (bytes_received < 0)
+    if(listenstatus < 0)
     {
-        printf("\nError: Failed to receive the data from client! error status: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        printf("\nError: listen() failed! error status: %s", strerror(errno));
+        return EXIT_FAILURE;
+    }
+    else
+    {
+        printf("\nServer listening on port\n");
     }
 
-    buffer[bytes_received] = '\0';
-    printf("\nMessage from client arrived: %s\n", buffer);
+    struct sockaddr_storage their_addr;
+    socklen_t their_addr_len = sizeof(their_addr);
+
+    const int newfd = accept(sockfd, (struct sockaddr*)&their_addr, &their_addr_len);
+
+    if(newfd < 0)
+    {
+        printf("\nError: accept() failed! error status: %s", strerror(errno));
+        return EXIT_FAILURE;
+    }
+    else
+    {
+        printf("\nConnection accepted!\n");
+    }
+
+    const char* message = "Hello from the TCP Server!";
+    const int message_len = strlen(message);
+    const int bytes_sent = send(newfd, message, message_len, 0);
+
+    if(bytes_sent < 0)
+    {
+        printf("\nError: Server failed to send the message! error status: %s", strerror(errno));
+    }
+    else
+    {
+        printf("\nSuccess: Message from server sent successfully\n");
+    }
 
     close(sockfd);
+
+    close(newfd);
 
     freeaddrinfo(res); // freeing the linked list.
 
