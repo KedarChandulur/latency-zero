@@ -4,15 +4,15 @@ CFLAGS = -Wall -Wextra -g
 BIN_DIR = bin
 BUILD_DIR = build
 
-# List all available scripts here
-SCRIPTS := udp_sender udp_receiver tcp_sender tcp_receiver
+SRC := $(wildcard sandbox/networking/*.c)
+BINS := $(patsubst sandbox/networking/%.c, $(BIN_DIR)/%, $(SRC))
 
-all: $(patsubst %, $(BIN_DIR)/%, $(SCRIPTS))
+all: $(BINS)
 
 $(BIN_DIR)/%: $(BUILD_DIR)/%.o
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(BUILD_DIR)/%.o: networking/%.c
+$(BUILD_DIR)/%.o: sandbox/networking/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
