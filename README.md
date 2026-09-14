@@ -10,9 +10,9 @@ Low-latency HFT simulator in C/C++
 - Before executing the bootstrap.sh script, make sure it has execution permissions. Use chmod to achieve that.
 
 ```bash
-chmod +x scripts/bootstrap.sh
-bash scripts/bootstrap.sh
-bash scripts/foldersetup.sh
+chmod +x tools/bootstrap.sh
+bash tools/bootstrap.sh
+bash tools/foldersetup.sh
 ```
 
 ## Build:
