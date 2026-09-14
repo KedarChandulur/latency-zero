@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bootstrap script — installs all heavy system dependencies for latency-zero
-# Run once after cloning: bash scripts/bootstrap.sh
+# Run once after cloning: bash tools/bootstrap.sh
 
 set -e  # exit immediately if any command fails
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Foldersetup script — creates all the required folders for latency-zero
-# Run once after cloning: bash scripts/foldersetup.sh
+# Run once after cloning: bash tools/foldersetup.sh
 
 set -e  # exit immediately if any command fails
 
